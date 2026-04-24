@@ -14,7 +14,8 @@ BUILD   := build
 
 SRCS_C  := kernel/main.c \
            kernel/drivers/uart/uart.c \
-           kernel/arch/riscv64/trap.c 
+           kernel/arch/riscv64/trap.c \
+		   kernel/lib/common.c
 
 SRCS_S  := kernel/arch/riscv64/boot.S \
 		   kernel/arch/riscv64/trap.S \

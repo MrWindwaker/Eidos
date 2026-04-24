@@ -9,22 +9,22 @@ SECTIONS {
     . = 0x80000000;
 
     .text : {
-        *(.text.boot)
-        *(.text*)
+        *(.text.boot);
+        *(.text*);
     } > RAM
 
     .rodata : {
-        *(.rodata*)
+        *(.rodata*);
     } > RAM
 
     .data : {
-        *(.data*)
+        *(.data*);
     } > RAM
 
     .bss : {
         _bss_start = .;
-        *(.bss*)
-        *(COMMON)
+        *(.bss*);
+        *(COMMON);
         _bss_end = .;
     } > RAM
 

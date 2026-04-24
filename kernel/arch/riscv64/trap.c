@@ -1,5 +1,5 @@
 #include "trap.h"
-#include "../../drivers/uart/uart.h"
+#include "../../lib/common.h"
 
 static const char *exception_cause(uint64_t cause)
 {
@@ -38,7 +38,6 @@ static const char *exception_cause(uint64_t cause)
     }
 }
 
-// Interrupt cause codes (mcause, interrupt bit set)
 static const char *interrupt_cause(uint64_t cause)
 {
     switch (cause)
@@ -62,7 +61,7 @@ static const char *interrupt_cause(uint64_t cause)
 
 void print_hex(uint64_t val)
 {
-    uart_puts("0x");
+    printf("0x");
     char buf[17];
     buf[16] = '\0';
 
@@ -72,12 +71,12 @@ void print_hex(uint64_t val)
         buf[i] = nibble < 10 ? '0' + nibble : 'a' + nibble - 10;
         val >>= 4;
     }
-    uart_puts(buf);
+    printf(buf);
 }
 
 void trap_handler(trap_frame_t *frame)
 {
-    uart_puts("TRAP FIRED\n");
+    println("TRAP FIRED");
     uint64_t mcause, mepc, mtval;
 
     asm volatile("csrr %0, mcause" : "=r"(mcause));
@@ -87,35 +86,27 @@ void trap_handler(trap_frame_t *frame)
     uint64_t is_interrupt = mcause >> 63;
     uint64_t cause_code = mcause & ~(1ULL << 63);
 
-    uart_puts("\n--- EIDOS TRAP ---\n");
+    println("--- EIDOS TRAP ---");
 
     if (is_interrupt)
     {
-        uart_puts("Type: Interrupt\n");
-        uart_puts("Cause: ");
-        uart_puts(interrupt_cause(cause_code));
+        println("Type: Interrupt");
+        println("Cause: %s", interrupt_cause(cause_code));
     }
     else
     {
-        uart_puts("Type: Exception\n");
-        uart_puts("Cause: ");
-        uart_puts(exception_cause(cause_code));
+        println("Type: Exception\n");
+        println("Cause: %s", exception_cause(cause_code));
     }
 
-    uart_puts("\nmepc:  ");
-    print_hex(mepc);
-    uart_puts("\nmtval: ");
-    print_hex(mtval);
-    uart_puts("\n\nRegisters:\n");
-    uart_puts("  ra:  ");
-    print_hex(frame->ra);
-    uart_puts("  sp:  ");
-    print_hex(frame->sp);
-    uart_puts("  a0:  ");
-    print_hex(frame->a0);
-    uart_puts("  a1:  ");
-    print_hex(frame->a1);
-    uart_puts("\n------------------\n");
+    println("mepc:  %x", mepc);
+    println("mtval: %x", mtval);
+    println("\n\nRegisters:");
+    println("  ra:  %x", frame->ra);
+    println("  sp:  %x", frame->sp);
+    println("  a0:  %x", frame->a0);
+    println("  a1:  %x", frame->a1);
+    println("------------------");
 
     for (;;)
     {
