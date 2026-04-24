@@ -17,7 +17,8 @@ SRCS_C  := kernel/main.c \
            kernel/arch/riscv64/trap.c \
 		   kernel/lib/print.c \
 		   kernel/lib/panic.c  \
-		   kernel/mm/pmm.c
+		   kernel/mm/pmm.c \
+		   kernel/mm/vm.c
 
 SRCS_S  := kernel/arch/riscv64/boot.S \
 		   kernel/arch/riscv64/trap.S \
