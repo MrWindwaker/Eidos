@@ -5,7 +5,6 @@
 
 typedef struct
 {
-    uint64_t padding;
     uint64_t ra;
     uint64_t sp;
     uint64_t gp;

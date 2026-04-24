@@ -8,6 +8,8 @@ void kernel_main(void)
     uart_init();
     println("Eidos is alive.");
 
+    asm volatile(".word 0xFFFFFFFF");
+
     for (;;)
     {
         asm volatile("wfi");

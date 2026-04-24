@@ -1,14 +1,8 @@
-#include <stdarg.h>
-#include <stdint.h>
-
 #include "../drivers/uart/uart.h"
 #include "common.h"
 
-void printf(const char *fmt, ...)
+void vprintf(const char *fmt, va_list vargs)
 {
-    va_list vargs;
-    va_start(vargs, fmt);
-
     while (*fmt)
     {
         if (*fmt == '%')
@@ -18,7 +12,7 @@ void printf(const char *fmt, ...)
             {
             case '\0':
                 uart_putc('%');
-                break;
+                goto end;
             case '%':
                 uart_putc('%');
                 break;
@@ -79,12 +73,22 @@ void printf(const char *fmt, ...)
 
         fmt++;
     }
-
-    va_end(vargs);
+end:;
 }
 
 void println(const char *fmt, ...)
 {
-    printf(fmt);
+    va_list vargs;
+    va_start(vargs, fmt);
+    vprintf(fmt, vargs);
+    va_end(vargs);
     uart_putc('\n');
+}
+
+void printf(const char *fmt, ...)
+{
+    va_list vargs;
+    va_start(vargs, fmt);
+    vprintf(fmt, vargs);
+    va_end(vargs);
 }

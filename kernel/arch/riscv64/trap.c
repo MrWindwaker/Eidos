@@ -76,7 +76,6 @@ void print_hex(uint64_t val)
 
 void trap_handler(trap_frame_t *frame)
 {
-    println("TRAP FIRED");
     uint64_t mcause, mepc, mtval;
 
     asm volatile("csrr %0, mcause" : "=r"(mcause));
@@ -86,30 +85,13 @@ void trap_handler(trap_frame_t *frame)
     uint64_t is_interrupt = mcause >> 63;
     uint64_t cause_code = mcause & ~(1ULL << 63);
 
-    println("--- EIDOS TRAP ---");
-
     if (is_interrupt)
     {
-        println("Type: Interrupt");
-        println("Cause: %s", interrupt_cause(cause_code));
+        println("\nCause: %s", interrupt_cause(cause_code));
     }
     else
     {
-        println("Type: Exception\n");
-        println("Cause: %s", exception_cause(cause_code));
+        println("\nCause: %s", exception_cause(cause_code));
     }
-
-    println("mepc:  %x", mepc);
-    println("mtval: %x", mtval);
-    println("\n\nRegisters:");
-    println("  ra:  %x", frame->ra);
-    println("  sp:  %x", frame->sp);
-    println("  a0:  %x", frame->a0);
-    println("  a1:  %x", frame->a1);
-    println("------------------");
-
-    for (;;)
-    {
-        asm volatile("wfi");
-    }
+    panic("\nmepc: %x  mtval: %x\nra:   %x  sp:    %x\n", mepc, mtval, frame->ra, frame->sp);
 }
