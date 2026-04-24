@@ -16,7 +16,8 @@ SRCS_C  := kernel/main.c \
            kernel/drivers/uart/uart.c \
            kernel/arch/riscv64/trap.c \
 		   kernel/lib/print.c \
-		   kernel/lib/panic.c 
+		   kernel/lib/panic.c  \
+		   kernel/mm/pmm.c
 
 SRCS_S  := kernel/arch/riscv64/boot.S \
 		   kernel/arch/riscv64/trap.S \

@@ -38,4 +38,8 @@ SECTIONS {
     . = ALIGN(16);
     . += 8192;
     _stack_top = .;
+
+    . = ALIGN(4096);
+    _free_ram_start = .;
+    _free_ram_end = ORIGIN(RAM) + LENGTH(RAM);
 }
