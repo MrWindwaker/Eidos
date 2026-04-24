@@ -1,6 +1,6 @@
 #include "uart.h"
 
-#define UART_BASE 0x10000000UL
+#define UART_BASE 0x10000000ULL
 
 #define UART_THR (*(volatile unsigned char *)(UART_BASE + 0))
 #define UART_LSR (*(volatile unsigned char *)(UART_BASE + 5))
@@ -26,9 +26,10 @@ void uart_init(void)
 
 void uart_putc(char c)
 {
-    while ((UART_LSR & UART_LSR_THRE) == 0)
+    volatile unsigned char *uart = (volatile unsigned char *)UART_BASE;
+    while (!(uart[5] & 0x20))
         ;
-    UART_THR = c;
+    uart[0] = c;
 }
 
 void uart_puts(const char *s)

@@ -2,7 +2,7 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 MEMORY {
-    RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128M
+    RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 126M
 }
 
 SECTIONS {
@@ -28,5 +28,14 @@ SECTIONS {
         _bss_end = .;
     } > RAM
 
-    _stack_top = ORIGIN(RAM) + LENGTH(RAM);
+    .trap_stack : {
+        . = ALIGN(16);
+        _trap_stack_bottom = .;
+        . += 4096;
+        _trap_stack_top = .;
+    } > RAM
+
+    . = ALIGN(16);
+    . += 8192;
+    _stack_top = .;
 }

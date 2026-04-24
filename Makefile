@@ -13,12 +13,14 @@ LDFLAGS := -T tools/linker.ld -nostdlib
 BUILD   := build
 
 SRCS_C  := kernel/main.c \
-           kernel/drivers/uart/uart.c
+           kernel/drivers/uart/uart.c \
+           kernel/arch/riscv64/trap.c 
 
-SRCS_S  := kernel/arch/riscv64/boot.S
+SRCS_S  := kernel/arch/riscv64/boot.S \
+		   kernel/arch/riscv64/trap.S \
 
 OBJS    := $(patsubst %.c,$(BUILD)/%.o,$(SRCS_C)) \
-           $(patsubst %.S,$(BUILD)/%.o,$(SRCS_S))
+           $(patsubst %.S,$(BUILD)/%.S.o,$(SRCS_S))
 
 KERNEL  := $(BUILD)/eidos.elf
 
@@ -34,17 +36,18 @@ $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/%.o: %.S
+$(BUILD)/%.S.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(KERNEL)
+	riscv64-unknown-elf-objcopy -O binary $(KERNEL) build/eidos.bin
 	qemu-system-riscv64 \
 		-machine virt \
 		-cpu rv64 \
 		-nographic \
-		-bios none \
-		-kernel $(KERNEL)
+		-bios build/eidos.bin \
+		-m 128M
 
 clean:
 	rm -rf $(BUILD)
