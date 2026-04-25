@@ -4,6 +4,25 @@
 #include "lib/common.h"
 #include "mm/pmm.h"
 #include "mm/vm.h"
+#include "proc/proc.h"
+
+static void proc_a(void)
+{
+    for (;;)
+    {
+        println("A");
+        yield();
+    }
+}
+
+static void proc_b(void)
+{
+    for (;;)
+    {
+        println("B");
+        yield();
+    }
+}
 
 void kernel_main(void)
 {
@@ -11,9 +30,16 @@ void kernel_main(void)
     println("Eidos is alive.");
     pmm_init();
     vm_init();
+    proc_init();
 
-    for (;;)
-    {
-        asm volatile("wfi");
-    }
+    proc_t *pa = proc_create();
+    pa->context.ra = (uint64_t)proc_a;
+
+    proc_t *pb = proc_create();
+    pb->context.ra = (uint64_t)proc_b;
+
+    current_proc = NULL;
+    yield();
+
+    panic("kernel_main: yield returned");
 }

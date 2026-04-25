@@ -12,16 +12,10 @@ LDFLAGS := -T tools/linker.ld -nostdlib
 
 BUILD   := build
 
-SRCS_C  := kernel/main.c \
-           kernel/drivers/uart/uart.c \
-           kernel/arch/riscv64/trap.c \
-		   kernel/lib/print.c \
-		   kernel/lib/panic.c  \
-		   kernel/mm/pmm.c \
-		   kernel/mm/vm.c
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCS_S  := kernel/arch/riscv64/boot.S \
-		   kernel/arch/riscv64/trap.S \
+SRCS_C := $(call rwildcard,kernel,*.c)
+SRCS_S := $(call rwildcard,kernel,*.S)
 
 OBJS    := $(patsubst %.c,$(BUILD)/%.o,$(SRCS_C)) \
            $(patsubst %.S,$(BUILD)/%.S.o,$(SRCS_S))
