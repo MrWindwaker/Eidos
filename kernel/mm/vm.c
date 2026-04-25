@@ -39,20 +39,37 @@ void vm_map(pagetable_t root, uint64_t vaddr, uint64_t paddr, uint64_t size, uin
     }
 }
 
-void vm_init(void)
+void vm_map_kernel(pagetable_t root)
 {
     extern char _free_ram_end[];
     uint64_t ram_start = 0x80000000;
     uint64_t ram_end = (uint64_t)_free_ram_end;
-    uint64_t size = ram_end - ram_start;
 
-    vm_map(kernel_pagetable, ram_start, ram_start, size, PTE_R | PTE_W | PTE_X);
-    vm_map(kernel_pagetable, 0x10000000, 0x10000000, PAGE_SIZE, PTE_R | PTE_W);
-    vm_map(kernel_pagetable, 0x20000000, 0x20000000, 0x10000, PTE_R | PTE_W);
+    vm_map(root, ram_start, ram_start, ram_end - ram_start, PTE_R | PTE_W | PTE_X);
+    vm_map(root, 0x10000000, 0x10000000, PAGE_SIZE, PTE_R | PTE_W);
+    vm_map(root, 0x20000000, 0x20000000, 0x10000, PTE_R | PTE_W);
+}
+
+pagetable_t *vm_create(void)
+{
+    pagetable_t *pt = (pagetable_t *)alloc_page();
+    vm_map_kernel(*pt);
+    return pt;
+}
+
+void vm_switch(pagetable_t *pt)
+{
+    uint64_t satp = SATP_SV39 | ((uint64_t)pt >> 12);
+    asm volatile("csrw satp, %0" : : "r"(satp));
+    asm volatile("sfence.vma zero, zero");
+}
+
+void vm_init(void)
+{
+    vm_map_kernel(kernel_pagetable);
 
     uint64_t satp = SATP_SV39 | ((uint64_t)kernel_pagetable >> 12);
     asm volatile("csrw satp, %0" : : "r"(satp));
-
     asm volatile("sfence.vma zero, zero");
 
     println("vm: MMU enabled");

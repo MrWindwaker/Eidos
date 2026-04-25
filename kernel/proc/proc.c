@@ -29,7 +29,7 @@ proc_t *proc_create(void (*entry)(void))
 
             p->pid = i + 1;
             p->state = PROC_RUNNABLE;
-            p->pagetable = NULL;
+            p->pagetable = vm_create();
 
             uint64_t *sp = (uint64_t *)(p->kernel_stack + KERNEL_STACK_SIZE);
 
@@ -54,6 +54,7 @@ proc_t *proc_create(void (*entry)(void))
 void yield(void)
 {
     asm volatile("csrc mstatus, %0" : : "r"(1 << 3));
+
     int start = 0;
     if (current_proc != NULL)
         start = (current_proc->pid) % PROC_MAX;
@@ -82,6 +83,8 @@ void yield(void)
 
     uint64_t trap_top = (uint64_t)next->trap_stack + KERNEL_STACK_SIZE;
     asm volatile("csrw mscratch, %0" : : "r"(trap_top));
+
+    vm_switch(next->pagetable);
 
     if (prev)
         proc_switch(&prev->sp, &next->sp);

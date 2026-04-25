@@ -20,5 +20,8 @@ typedef pte_t pagetable_t[512];
 
 void vm_init(void);
 void vm_map(pagetable_t root, uint64_t vaddr, uint64_t paddr, uint64_t size, uint64_t flags);
+void vm_map_kernel(pagetable_t root);
+pagetable_t *vm_create(void);
+void vm_switch(pagetable_t *pt);
 
 #endif
