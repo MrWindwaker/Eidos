@@ -47,7 +47,8 @@ void vm_init(void)
     uint64_t size = ram_end - ram_start;
 
     vm_map(kernel_pagetable, ram_start, ram_start, size, PTE_R | PTE_W | PTE_X);
-    vm_map(kernel_pagetable, 0x10000000, 0x10000000, PAGE_SIZE, PTE_R | PTE_W | PTE_X);
+    vm_map(kernel_pagetable, 0x10000000, 0x10000000, PAGE_SIZE, PTE_R | PTE_W);
+    vm_map(kernel_pagetable, 0x20000000, 0x20000000, 0x10000, PTE_R | PTE_W);
 
     uint64_t satp = SATP_SV39 | ((uint64_t)kernel_pagetable >> 12);
     asm volatile("csrw satp, %0" : : "r"(satp));

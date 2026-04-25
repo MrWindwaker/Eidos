@@ -21,9 +21,9 @@ typedef struct
     int pid;
     proc_state_t state;
     pagetable_t *pagetable;
+    uint64_t sp;
     uint8_t kernel_stack[KERNEL_STACK_SIZE];
     uint8_t trap_stack[KERNEL_STACK_SIZE];
-    uint64_t sp;
 } proc_t;
 
 extern proc_t procs[PROC_MAX];

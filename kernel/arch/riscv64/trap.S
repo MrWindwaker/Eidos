@@ -41,11 +41,17 @@ trap_entry:
     csrr t0, mscratch
     sd t0, 8(sp)
 
+    addi t0, sp, 256
+    csrw mscratch, t0
+
     mv a0, sp
     call trap_handler
 
+    ld t0, 8(sp)
+    csrw mscratch, t0
+
     ld x1, 0(sp)
-    ld x2, 8(sp)
+
     ld x3, 16(sp)
     ld x4, 24(sp)
     ld x5, 32(sp)
