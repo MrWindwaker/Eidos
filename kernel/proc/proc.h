@@ -18,37 +18,21 @@ typedef enum
 
 typedef struct
 {
-    uint64_t ra;
-    uint64_t sp;
-    uint64_t s0;
-    uint64_t s1;
-    uint64_t s2;
-    uint64_t s3;
-    uint64_t s4;
-    uint64_t s5;
-    uint64_t s6;
-    uint64_t s7;
-    uint64_t s8;
-    uint64_t s9;
-    uint64_t s10;
-    uint64_t s11;
-} context_t;
-
-typedef struct
-{
     int pid;
     proc_state_t state;
     pagetable_t *pagetable;
     uint8_t kernel_stack[KERNEL_STACK_SIZE];
-    context_t context;
+    uint8_t trap_stack[KERNEL_STACK_SIZE];
+    uint64_t sp;
 } proc_t;
 
 extern proc_t procs[PROC_MAX];
 extern proc_t *current_proc;
+extern volatile int need_yield;
 
 void proc_init(void);
-proc_t *proc_create(void);
-void proc_switch(context_t *old_c, context_t *new_c);
+proc_t *proc_create(void (*entry)(void));
+void proc_switch(uint64_t *prev_sp, uint64_t *next_sp);
 void yield(void);
 
 #endif

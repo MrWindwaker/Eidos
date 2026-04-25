@@ -1,5 +1,7 @@
 #include "trap.h"
 #include "../../lib/common.h"
+#include "../../drivers/clint/clint.h"
+#include "../../proc/proc.h"
 
 static const char *exception_cause(uint64_t cause)
 {
@@ -76,14 +78,25 @@ void print_hex(uint64_t val)
 
 void trap_handler(trap_frame_t *frame)
 {
+    (void)frame;
     uint64_t mcause, mepc, mtval;
 
     asm volatile("csrr %0, mcause" : "=r"(mcause));
+
+    printf("trap! mcause=%x\n", mcause);
+
     asm volatile("csrr %0, mepc" : "=r"(mepc));
     asm volatile("csrr %0, mtval" : "=r"(mtval));
 
     uint64_t is_interrupt = mcause >> 63;
     uint64_t cause_code = mcause & ~(1ULL << 63);
+
+    if (is_interrupt && cause_code == 7)
+    {
+        clint_rest_timer();
+        need_yield = 1;
+        return;
+    }
 
     if (is_interrupt)
     {
