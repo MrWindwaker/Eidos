@@ -7,23 +7,7 @@
 #include "proc/proc.h"
 #include "drivers/clint/clint.h"
 
-static void proc_a(void)
-{
-    for (;;)
-    {
-        printf("A\n");
-        yield();
-    }
-}
-
-static void proc_b(void)
-{
-    for (;;)
-    {
-        printf("B\n");
-        yield();
-    }
-}
+#include "../build/userspace/hello.h"
 
 void kernel_main(void)
 {
@@ -33,8 +17,7 @@ void kernel_main(void)
     vm_init();
     proc_init();
 
-    proc_create(proc_a);
-    proc_create(proc_b);
+    proc_create_user(hello_bin, hello_bin_size);
 
     clint_init();
 

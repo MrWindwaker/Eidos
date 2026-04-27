@@ -6,6 +6,8 @@ trap_entry:
     csrrw sp, mscratch, sp
     addi sp, sp, -256
 
+    csrci mstatus, 8
+
     sd x1, 0(sp)
     sd x2, 8(sp)
     sd x3, 16(sp)

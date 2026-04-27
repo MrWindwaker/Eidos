@@ -22,6 +22,12 @@ _start:
     la t0, _trap_stack_top
     csrw mscratch, t0
 
+    li t0, 0x3ffffffffffff
+    csrw pmpaddr0, t0
+
+    li t0, 0x0f
+    csrw pmpcfg0, t0
+
     call kernel_main
 .spin:
     wfi

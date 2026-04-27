@@ -22,6 +22,8 @@ typedef struct
     proc_state_t state;
     pagetable_t *pagetable;
     uint64_t sp;
+    uint64_t uentry;
+    uint64_t usp;
     uint8_t kernel_stack[KERNEL_STACK_SIZE];
     uint8_t trap_stack[KERNEL_STACK_SIZE];
 } proc_t;
@@ -33,6 +35,7 @@ extern volatile int need_yield;
 void proc_init(void);
 proc_t *proc_create(void (*entry)(void));
 void proc_switch(uint64_t *prev_sp, uint64_t *next_sp);
+proc_t *proc_create_user(const uint8_t *binaty, uint32_t size);
 void yield(void);
 
 #endif

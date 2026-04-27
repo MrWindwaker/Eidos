@@ -22,9 +22,12 @@ OBJS    := $(patsubst %.c,$(BUILD)/%.o,$(SRCS_C)) \
 
 KERNEL  := $(BUILD)/eidos.elf
 
-.PHONY: all clean run
+.PHONY: all clean run userspace
 
-all: $(KERNEL)
+all: userspace $(KERNEL)
+
+userspace: 
+	$(MAKE) -C userspace
 
 $(KERNEL): $(OBJS)
 	@mkdir -p $(BUILD)
@@ -49,3 +52,4 @@ run: $(KERNEL)
 
 clean:
 	rm -rf $(BUILD)
+	$(MAKE) -C userspace clean
