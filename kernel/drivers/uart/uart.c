@@ -39,3 +39,11 @@ void uart_puts(const char *s)
         uart_putc(*s++);
     }
 }
+
+char uart_getc(void)
+{
+    volatile unsigned char *uart = (volatile unsigned char *)UART_BASE;
+    while (!(uart[5] & 0x01))
+        ;
+    return uart[0];
+}
