@@ -1,6 +1,7 @@
 #include "trap.h"
 #include "../../lib/common.h"
 #include "../../drivers/clint/clint.h"
+#include "../../drivers/uart/uart.h"
 #include "../../proc/proc.h"
 
 static const char *exception_cause(uint64_t cause)
@@ -88,8 +89,6 @@ void trap_handler(trap_frame_t *frame)
     uint64_t is_interrupt = mcause >> 63;
     uint64_t cause_code = mcause & ~(1ULL << 63);
 
-    printf("trap! mcause=%x mpec=%x mtval=%x\n", mcause, mepc, mtval);
-
     if (is_interrupt && cause_code == 7)
     {
         clint_rest_timer();
@@ -102,16 +101,28 @@ void trap_handler(trap_frame_t *frame)
         uint64_t syscall_num = frame->a7;
 
         if (syscall_num == 1)
-            println("user: sys_write called");
+        {
+            uint64_t user_str_va = frame->a0;
+            uint64_t len = frame->a1;
+
+            uint64_t pa = vm_translate(current_proc->pagetable, user_str_va);
+
+            if (pa == 0)
+                println("sys_write: bad address");
+            else
+            {
+                const char *s = (const char *)pa;
+                for (uint64_t i = 0; i < len; i++)
+                    uart_putc(s[i]);
+            }
+        }
         else if (syscall_num == 2)
         {
-            println("user: sys_exited called");
             current_proc->state = PROC_DEAD;
 
             asm volatile("csrs mstatus, %0" : : "r"(1 << 3));
             yield();
 
-            println("kernel: no more process, halting");
             for (;;)
                 asm volatile("wfi");
         }

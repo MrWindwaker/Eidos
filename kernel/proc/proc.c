@@ -51,11 +51,6 @@ proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
                        PTE_R | PTE_X | PTE_U);
             }
 
-            uint8_t *b = (uint8_t *)first_page;
-            printf("proc: page0 bytes: %x %x %x %x %x %x %x %x\n", b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
-            printf("proc: page0 phys addr: %x\n", (uint64_t)first_page);
-            printf("proc: mapped to vaddr: %x\n", USER_BASE);
-
             void *stack = alloc_page();
             vm_map(*p->pagetable,
                    USER_STACK,
@@ -70,7 +65,6 @@ proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
             sp[0] = (uint64_t)USER_BASE;
             p->sp = (uint64_t)sp;
 
-            printf("proc: created user process %d enrty%x\n", p->pid, USER_BASE);
             return p;
         }
     }
@@ -113,7 +107,6 @@ proc_t *proc_create(void (*entry)(void))
             sp[0] = (uint64_t)entry;
 
             p->sp = (uint64_t)sp;
-            printf("proc: created process %d entry=%x sp=%x\n", p->pid, (uint64_t)entry, p->sp);
 
             return p;
         }

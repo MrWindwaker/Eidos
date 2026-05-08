@@ -3,9 +3,8 @@
 
 _start:
     li a7, 1
-    la a0, 0
-    la a1, 0
-    li a2, 13
+    la a0, msg
+    li a1, 35
     ecall
 
     li a7, 2
@@ -14,3 +13,6 @@ _start:
 
 .loop:
     j .loop
+
+msg:
+    .string "The developer can't read properly\n"

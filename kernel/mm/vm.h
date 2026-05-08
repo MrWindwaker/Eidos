@@ -23,5 +23,6 @@ void vm_map(pagetable_t root, uint64_t vaddr, uint64_t paddr, uint64_t size, uin
 void vm_map_kernel(pagetable_t root);
 pagetable_t *vm_create(void);
 void vm_switch(pagetable_t *pt);
+uint64_t vm_translate(pagetable_t *pt, uint64_t vaddr);
 
 #endif

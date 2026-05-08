@@ -74,3 +74,22 @@ void vm_init(void)
 
     println("vm: MMU enabled");
 }
+
+uint64_t vm_translate(pagetable_t *pt, uint64_t vaddr)
+{
+    pte_t *l2 = &(*pt)[vpn(vaddr, 2)];
+    if (!(*l2 & PTE_V))
+        return 0;
+
+    pagetable_t *l1_table = (pagetable_t *)PTE_TO_PA(*l2);
+    pte_t *l1 = &(*l1_table)[vpn(vaddr, 1)];
+    if (!(*l1 & PTE_V))
+        return 0;
+
+    pagetable_t *l0_table = (pagetable_t *)PTE_TO_PA(*l1);
+    pte_t *l0 = &(*l0_table)[vpn(vaddr, 0)];
+    if (!(*l0 & PTE_V))
+        return 0;
+
+    return PTE_TO_PA(*l0) | (vaddr & 0xfff);
+}
