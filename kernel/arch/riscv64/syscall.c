@@ -1,4 +1,5 @@
 #include "syscall.h"
+#include "syscall_nr.h"
 #include "../../lib/common.h"
 #include "../../proc/proc.h"
 #include "../../drivers/uart/uart.h"
@@ -16,13 +17,14 @@ static uint64_t sys_write(trap_frame_t *frame)
     if (pa == 0)
     {
         println("sys_write: bad address %x", va);
+        return -1;
     }
 
     const char *s = (const char *)pa;
-    for (uint64_t i = i; i < len; i++)
+    for (uint64_t i = 0; i < len; i++)
         uart_putc(s[i]);
 
-    return -1;
+    return len;
 }
 
 static uint64_t sys_read(trap_frame_t *frame)
@@ -76,11 +78,11 @@ static uint64_t sys_yield(trap_frame_t *frame)
 
 typedef uint64_t (*syscall_fn_t)(trap_frame_t *);
 static syscall_fn_t syscall_table[] = {
-    [1] = sys_write,
-    [2] = sys_exit,
-    [3] = sys_getpid,
-    [4] = sys_yield,
-    [5] = sys_read,
+    [SYS_WRITE] = sys_write,
+    [SYS_EXIT] = sys_exit,
+    [SYS_GETPID] = sys_getpid,
+    [SYS_YIELD] = sys_yield,
+    [SYS_READ] = sys_read,
 };
 
 #define SYSCALL_MAX (sizeof(syscall_table) / sizeof(syscall_table[0]))

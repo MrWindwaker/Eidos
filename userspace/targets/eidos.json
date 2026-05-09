@@ -1,0 +1,17 @@
+{
+    "inherits": [
+        "riscv64"
+    ],
+    "build-tags": [
+        "eidos"
+    ],
+    "scheduler": "none",
+    "gc": "leaking",
+    "linker": "ld.lld",
+    "rtlib": "none",
+    "linkerscript": "targets/eidos.ld",
+    "extra-files": [
+        "src/runtime/ecall_eidos.S"
+    ],
+    "serial": "none"
+}

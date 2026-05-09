@@ -1,0 +1,45 @@
+func Write(fd uintptr, buf []byte) int {
+	if len(buf) == 0 {
+		return 0
+	}
+
+	n := ecall3(
+		SYS_WRITE,
+		fd,
+		uintptr(unsafe.Pointer(&buf[0])),
+		uintptr(len(buf)),
+	)
+
+	return int(n)
+}
+
+func Read(fd uintptr, buf []byte) int {
+	if len(buf) == 0 {
+		return 0
+	}
+
+	n := ecall3(
+		SYS_READ,
+		fd,
+		uintptr(unsafe.Pointer(&buf[0])),
+		uintptr(len(buf)),
+	)
+
+	return int(n)
+}
+
+func Exit(code int) {
+	ecall1(SYS_EXIT, uintptr(code))
+}
+
+func Getpid() int {
+	return int(ecall0(SYS_GETPID))
+}
+
+func Yield() {
+	ecall0(SYS_YIELD)
+}
+
+func WriteString(fd uintptr, s string) int {
+	return Write(fd, []byte(s))
+}

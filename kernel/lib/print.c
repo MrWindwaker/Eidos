@@ -61,6 +61,12 @@ void vprintf(const char *fmt, va_list vargs)
                 }
                 break;
             }
+            case 'c':
+            {
+                char c = (char)va_arg(vargs, int);
+                uart_putc(c);
+                break;
+            }
             default:
                 uart_putc('%');
                 uart_putc(*fmt);

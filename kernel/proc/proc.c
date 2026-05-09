@@ -9,6 +9,7 @@ proc_t *current_proc = NULL;
 static uint64_t idle_sp;
 
 #define USER_BASE 0x1000
+#define USER_MAP_SIZE 0x20000
 #define USER_STACK 0x80000
 
 proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
@@ -21,42 +22,30 @@ proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
             p->pid = i + 1;
             p->state = PROC_RUNNABLE;
             p->pagetable = vm_create();
-            p->uentry = USER_BASE;
-            p->usp = USER_STACK + PAGE_SIZE;
-            // void *check = alloc_page();
 
-            void *first_page = NULL;
-            uint32_t pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-            for (uint32_t pg = 0; pg < pages; pg++)
+            uint64_t map_start = USER_BASE;
+            uint64_t map_end = 0x13000;
+            uint64_t total_pages = (map_end - map_start) / PAGE_SIZE;
+
+            for (uint64_t pg = 0; pg < total_pages; pg++)
             {
                 void *page = alloc_page();
+                uint64_t va = map_start + pg * PAGE_SIZE;
 
-                if (pg == 0)
-                    first_page = page;
+                uint64_t offset = pg * PAGE_SIZE;
+                if (offset < size)
+                {
+                    uint32_t chunk = size - offset;
+                    if (chunk > PAGE_SIZE)
+                        chunk = PAGE_SIZE;
+                    uint8_t *dst = (uint8_t *)page;
+                    for (uint32_t b = 0; b < chunk; b++)
+                        dst[b] = binary[offset + b];
+                }
 
-                uint32_t offset = pg * PAGE_SIZE;
-                uint32_t chunk = size - offset;
-
-                if (chunk > PAGE_SIZE)
-                    chunk = PAGE_SIZE;
-
-                uint8_t *dst = (uint8_t *)page;
-                for (uint32_t b = 0; b < chunk; b++)
-                    dst[b] = binary[offset + b];
-
-                vm_map(*p->pagetable,
-                       USER_BASE + offset,
-                       (uint64_t)page,
-                       PAGE_SIZE,
-                       PTE_R | PTE_X | PTE_U);
+                uint64_t flags = PTE_R | PTE_W | PTE_X | PTE_U;
+                vm_map(*p->pagetable, va, (uint64_t)page, PAGE_SIZE, flags);
             }
-
-            void *stack = alloc_page();
-            vm_map(*p->pagetable,
-                   USER_STACK,
-                   (uint64_t)stack,
-                   PAGE_SIZE,
-                   PTE_R | PTE_W | PTE_U);
 
             uint64_t *sp = (uint64_t *)(p->kernel_stack + KERNEL_STACK_SIZE);
             sp -= 13;
@@ -65,6 +54,10 @@ proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
             sp[0] = (uint64_t)USER_BASE;
             p->sp = (uint64_t)sp;
 
+            p->uentry = USER_BASE;
+            p->usp = 0x12360;
+
+            printf("proc: created user process %d entry=%x\n", p->pid, USER_BASE);
             return p;
         }
     }
