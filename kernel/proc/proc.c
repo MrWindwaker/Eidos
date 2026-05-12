@@ -2,7 +2,8 @@
 #include "../mm/pmm.h"
 #include "../mm/vm.h"
 #include "../lib/common.h"
-#include "../../build/userspace/hello.h"
+#include "../fs/ramdisk.h"
+#include "../fs/elf.h"
 
 proc_t procs[PROC_MAX];
 proc_t *current_proc = NULL;
@@ -11,8 +12,10 @@ static uint64_t idle_sp;
 #define USER_BASE 0x1000
 #define USER_MAP_SIZE 0x20000
 #define USER_STACK 0x80000
+#define USER_STACK_PAGES 4
+#define USER_STACK_TOP 0x80000000ULL
 
-proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
+proc_t *proc_create_user(const char *name)
 {
     for (int i = 0; i < PROC_MAX; i++)
     {
@@ -23,41 +26,36 @@ proc_t *proc_create_user(const uint8_t *binary, uint32_t size)
             p->state = PROC_RUNNABLE;
             p->pagetable = vm_create();
 
-            uint64_t map_start = USER_BASE;
-            uint64_t map_end = 0x13000;
-            uint64_t total_pages = (map_end - map_start) / PAGE_SIZE;
+            uint32_t elf_size = 0;
+            const void *elf_data = ramdisk_find(name, &elf_size);
+            if (elf_data == NULL)
+                panic("proc; file not found: %s", name);
 
-            for (uint64_t pg = 0; pg < total_pages; pg++)
+            uint64_t entry = elf_load(p->pagetable, elf_data, elf_size);
+
+            uint64_t extra_start = 0x2000;
+            uint64_t extra_end = 0xb000;
+
+            for (uint64_t va = extra_start; va < extra_end; va += PAGE_SIZE)
             {
+                if (vm_translate(p->pagetable, va) != 0)
+                    continue;
+
                 void *page = alloc_page();
-                uint64_t va = map_start + pg * PAGE_SIZE;
-
-                uint64_t offset = pg * PAGE_SIZE;
-                if (offset < size)
-                {
-                    uint32_t chunk = size - offset;
-                    if (chunk > PAGE_SIZE)
-                        chunk = PAGE_SIZE;
-                    uint8_t *dst = (uint8_t *)page;
-                    for (uint32_t b = 0; b < chunk; b++)
-                        dst[b] = binary[offset + b];
-                }
-
-                uint64_t flags = PTE_R | PTE_W | PTE_X | PTE_U;
-                vm_map(*p->pagetable, va, (uint64_t)page, PAGE_SIZE, flags);
+                vm_map(*p->pagetable, va, (uint64_t)page, PAGE_SIZE, PTE_R | PTE_W | PTE_U);
             }
 
             uint64_t *sp = (uint64_t *)(p->kernel_stack + KERNEL_STACK_SIZE);
             sp -= 13;
             for (int j = 0; j < 13; j++)
                 sp[j] = 0;
-            sp[0] = (uint64_t)USER_BASE;
+            sp[0] = entry;
             p->sp = (uint64_t)sp;
 
-            p->uentry = USER_BASE;
-            p->usp = 0x12360;
+            p->uentry = entry;
+            p->usp = 0xa360;
 
-            printf("proc: created user process %d entry=%x\n", p->pid, USER_BASE);
+            printf("proc: loaded '%s' entry=%x\n", name, entry);
             return p;
         }
     }

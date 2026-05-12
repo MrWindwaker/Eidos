@@ -35,6 +35,13 @@ SECTIONS {
         _trap_stack_top = .;
     } > RAM
 
+    .ramdisk : {
+        _ramdisk_start = .;
+        KEEP(*(.ramdisk))
+        _ramdisk_end = .;
+        _ramdisk_size = _ramdisk_end - _ramdisk_start;
+    } > RAM
+
     . = ALIGN(16);
     . += 8192;
     _stack_top = .;

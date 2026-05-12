@@ -6,8 +6,12 @@
 #include "mm/vm.h"
 #include "proc/proc.h"
 #include "drivers/clint/clint.h"
+#include "fs/ramdisk.h"
 
-#include "../build/userspace/hello.h"
+#include "../build/ramdisk_size.h"
+
+extern const unsigned char _ramdisk_start[];
+extern const uint32_t _ramdisk_size;
 
 void kernel_main(void)
 {
@@ -17,7 +21,8 @@ void kernel_main(void)
     vm_init();
     proc_init();
 
-    proc_create_user(hello_bin, hello_bin_size);
+    ramdisk_init(_ramdisk_start, _ramdisk_size);
+    proc_create_user("hello.elf");
 
     clint_init();
 

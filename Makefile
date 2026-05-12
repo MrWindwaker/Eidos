@@ -21,10 +21,11 @@ OBJS    := $(patsubst %.c,$(BUILD)/%.o,$(SRCS_C)) \
            $(patsubst %.S,$(BUILD)/%.S.o,$(SRCS_S))
 
 KERNEL  := $(BUILD)/eidos.elf
+RAMDISK := build/ramdisk.img
 
-.PHONY: all clean run userspace
+.PHONY: all clean run userspace ramdisk
 
-all: userspace $(KERNEL)
+all: userspace ramdisk $(KERNEL)
 
 userspace: 
 	$(MAKE) -C userspace
@@ -40,6 +41,11 @@ $(BUILD)/%.o: %.c
 $(BUILD)/%.S.o: %.S
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+ramdisk: userspace
+	@mkdir -p build
+	python3 tools/mkeidar.py build/ramdisk.img build/userspace/hello.elf
+	python3 tools/mkramdisk_h.py build/ramdisk.img build/ramdisk_bytes.h build/ramdisk_size.h
 
 run: $(KERNEL)
 	riscv64-unknown-elf-objcopy -O binary $(KERNEL) build/eidos.bin
